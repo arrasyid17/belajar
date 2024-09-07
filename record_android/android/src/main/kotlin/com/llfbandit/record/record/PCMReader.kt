@@ -90,7 +90,13 @@ class PCMReader(
 
         val reader = try {
             AudioRecord(
-                MediaRecorder.AudioSource.VOICE_COMMUNICATION,
+                // Use VOICE_COMMUNICATION only if effects are enabled
+                // This is to avoid issues with some devices
+                if (hasEffects()) {
+                    MediaRecorder.AudioSource.VOICE_COMMUNICATION
+                } else {
+                    MediaRecorder.AudioSource.DEFAULT
+                },
                 sampleRate,
                 channels,
                 audioFormat,
@@ -192,5 +198,9 @@ class PCMReader(
         }
 
         return 20 * log10(max / 32767.0) // 16 signed bits 2^15 - 1
+    }
+
+    private fun hasEffects() : Boolean {
+        return config.autoGain || config.echoCancel || config.noiseSuppress
     }
 }
